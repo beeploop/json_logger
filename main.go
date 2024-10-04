@@ -19,26 +19,43 @@ func main() {
 		return
 	}
 
-	file, err := os.OpenFile(*source, os.O_RDONLY, 0666)
-	if err != nil {
+	scanner := Scanner{
+		source: *source,
+		from:   *from,
+	}
+	if err := scanner.Scan(); err != nil {
 		panic(err)
+	}
+}
+
+type Scanner struct {
+	source string
+	from   int
+}
+
+func (s *Scanner) Scan() error {
+	file, err := os.OpenFile(s.source, os.O_RDONLY, 0666)
+	if err != nil {
+		return err
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	line := 0
 	for scanner.Scan() {
-		if line <= *from {
+		if line <= s.from {
 			line++
 			continue
 		}
 
-        var pretty bytes.Buffer
-        if err := json.Indent(&pretty, []byte(scanner.Text()), "", "  "); err != nil {
-            panic(err)
-        }
+		var pretty bytes.Buffer
+		if err := json.Indent(&pretty, []byte(scanner.Text()), "", "  "); err != nil {
+			return err
+		}
 
-        fmt.Println(pretty.String())
+		fmt.Println(pretty.String())
 		line++
 	}
+
+	return nil
 }
