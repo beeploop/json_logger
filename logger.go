@@ -30,18 +30,35 @@ func (l *Logger) Watch() error {
 		return err
 	}
 
+	// Print initial contents
+	initialReader := bufio.NewReader(file)
+	for {
+		b, err := initialReader.ReadBytes('\n')
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		if err == io.EOF {
+			break
+		}
+
+		if err := l.prettyPrint(b); err != nil {
+			return err
+		}
+	}
+
 	reader := bufio.NewReader(file)
 	for {
+		if err := l.waitForChange(watcher); err != nil {
+			return err
+		}
+
 		b, err := reader.ReadBytes('\n')
 		if err != nil && err != io.EOF {
 			return err
 		}
 
 		if err := l.prettyPrint(b); err != nil {
-			return err
-		}
-
-		if err := l.waitForChange(watcher); err != nil {
 			return err
 		}
 	}
