@@ -1,17 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/json"
 	"flag"
-	"fmt"
-	"os"
 )
 
 func main() {
 	source := flag.String("file", "", "file to read")
-	from := flag.Int("from", 0, "line to start reading")
+	watch := flag.Bool("watch", false, "watch file for changes")
 	flag.Parse()
 
 	if *source == "" {
@@ -19,43 +14,14 @@ func main() {
 		return
 	}
 
-	scanner := Scanner{
-		source: *source,
-		from:   *from,
-	}
-	if err := scanner.Scan(); err != nil {
-		panic(err)
-	}
-}
-
-type Scanner struct {
-	source string
-	from   int
-}
-
-func (s *Scanner) Scan() error {
-	file, err := os.OpenFile(s.source, os.O_RDONLY, 0666)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	line := 0
-	for scanner.Scan() {
-		if line <= s.from {
-			line++
-			continue
+	logger := Logger{source: *source}
+	if *watch {
+		if err := logger.Watch(); err != nil {
+			panic(err)
 		}
-
-		var pretty bytes.Buffer
-		if err := json.Indent(&pretty, []byte(scanner.Text()), "", "  "); err != nil {
-			return err
+	} else {
+		if err := logger.Read(); err != nil {
+			panic(err)
 		}
-
-		fmt.Println(pretty.String())
-		line++
 	}
-
-	return nil
 }

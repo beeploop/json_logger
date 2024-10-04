@@ -1,5 +1,5 @@
 build:
-	@go build -o bin/json_tail main.go
+	@go build -o bin/json_logger main.go logger.go
 
 run: 
 	@go run main.go
