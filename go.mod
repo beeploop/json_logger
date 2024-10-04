@@ -1,4 +1,4 @@
-module github.com/beeploop/multiline-json-parser
+module github.com/beeploop/json_logger
 
 go 1.21.3
 
